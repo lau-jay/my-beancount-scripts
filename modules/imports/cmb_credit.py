@@ -14,7 +14,7 @@ from . import (DictReaderStrip, get_account_by_guess,
 from .base import Base
 from .deduplicate import Deduplicate
 
-Account招商 = 'Liabilities:CreditCard:CMB'
+Account招商 = 'Liabilities:CreditCards:CMB'
 trade_area_list = {
     'CN': 'CNY',
     'US': 'USD',
@@ -32,7 +32,7 @@ class CMBCredit():
             byte_content, include_raw_body=True)
         if not '招商银行信用卡' in parsed_eml['header']['subject']:
             raise 'Not CMB!'
-        content = parsed_eml['body'][1]['content']
+        content = parsed_eml['body'][0]['content']
         # for body in parsed_eml['body']:
         #content += body['content']
         self.soup = BeautifulSoup(content, 'html.parser')
@@ -62,14 +62,14 @@ class CMBCredit():
         d = self.soup
         transactions = []
         # balance = d.select('#fixBand16')[0].text.replace('RMB', '').strip()
-        date_range = d.select('#fixBand38 div font')[0].text.strip()
+        date_range = d.select('#fixBand6 div font')[0].text.strip()
         transaction_date = dateparser.parse(
             date_range.split('-')[1].split('(')[0])
         transaction_date = date(transaction_date.year,
                                 transaction_date.month, transaction_date.day)
         self.date = transaction_date
         balance = '-' + \
-            d.select('#fixBand40 div font')[0].text.replace(
+            d.select('#fixBand7 div font')[0].text.replace(
                 '￥', '').replace(',', '').strip()
         entry = Balance(
             account=Account招商,
@@ -81,7 +81,8 @@ class CMBCredit():
         )
         transactions.append(entry)
 
-        bands = d.select('#fixBand29 #loopBand2>table>tbody>tr')
+        # bands = d.select('#fixBand29 #loopBand2>table>tbody>tr')
+        bands = d.select("#fixBand29 #loopBand2 > table >tr")
         for band in bands:
             tds = band.select('td #fixBand15 table table td')
             if len(tds) == 0:
@@ -90,16 +91,22 @@ class CMBCredit():
             if trade_date == '':
                 trade_date = tds[2].text.strip()
             time = self.get_date(trade_date)
-            full_descriptions = tds[3].text.strip().split('-')
-            payee = full_descriptions[0]
-            description = '-'.join(full_descriptions[1:])
+            if '支付宝' in tds[3].text.strip():
+                full_descriptions = tds[3].text.strip().split('-')
+                payee = full_descriptions[0]
+                description = '-'.join(full_descriptions[1:])
+            else:
+                full_descriptions = tds[3].text.strip().split()
+                payee = full_descriptions[0]
+                description = '-'.join(full_descriptions[1:])
+
             trade_currency = self.change_currency(tds[6].text.strip())
             trade_price = tds[7].text.replace('\xa0', '').strip()
             real_currency = 'CNY'
             real_price = tds[4].text.replace(
                 '￥', '').replace('\xa0', '').strip()
             print("Importing {} at {}".format(description, time))
-            account = get_account_by_guess(description, '', time)
+            account = get_account_by_guess(payee, description, time)
             flag = "*"
             amount = float(real_price.replace(',', ''))
             if account == "Unknown":

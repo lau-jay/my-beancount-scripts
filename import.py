@@ -23,8 +23,7 @@ args = parser.parse_args()
 
 entries, errors, option_map = loader.load_file(args.entry)
 
-importers = [Alipay, WeChat, CITICCredit,
-             CMBCCredit, CMBCredit, YuEBao, ICBCDebit]
+importers = [Alipay, WeChat, CMBCCredit, CMBCredit,ICBCDebit]
 instance = None
 for importer in importers:
     try:
@@ -33,7 +32,7 @@ for importer in importers:
             instance = importer(args.path, file_bytes, entries, option_map)
         break
     except Exception as e:
-        pass
+        print(e)
 
 if instance == None:
     print("No suitable importer!")
