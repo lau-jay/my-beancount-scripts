@@ -87,14 +87,18 @@ class CMBCredit():
             tds = band.select('td #fixBand15 table table td')
             if len(tds) == 0:
                 continue
-            trade_date = tds[1].text.strip()
-            if trade_date == '':
-                trade_date = tds[2].text.strip()
+
+            # trade_date = tds[1].text.strip()
+            # if trade_date == '':
+            trade_date = tds[2].text.strip()
             time = self.get_date(trade_date)
             if '支付宝' in tds[3].text.strip():
                 full_descriptions = tds[3].text.strip().split('-')
                 payee = full_descriptions[0]
                 description = '-'.join(full_descriptions[1:])
+            elif '还款' in tds[3].text.strip():
+                payee = "还款"
+                description = tds[3].text.strip()
             else:
                 full_descriptions = tds[3].text.strip().split()
                 payee = full_descriptions[0]

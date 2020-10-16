@@ -24,10 +24,7 @@ def get_apple_account(from_user, description, time=None):
 
 
 def get_credit_return(from_user, description, time=None):
-    for key, value in credit_cards.items():
-        if key == from_user:
-            return value
-    return "Unknown"
+    return "Assets:Bank:CMB:Card4738:ZZY"
 
 
 public_accounts = [
@@ -65,7 +62,8 @@ descriptions = {
     '上海玄霆娱乐': "Expenses:Play:Reading",
     '美宜': "Expenses:Food:Drink",
     '友琪': "Expenses:Food:Drink",
-    '宠物': "Expenses:DogYogurt:Others"
+    '宠物': "Expenses:DogYogurt:Others",
+    '金百味': "Expenses:Food:Dinner"
 }
 
 anothers = {
